@@ -1,9 +1,7 @@
-"""
-API Router - Main router that includes all sub-routers
-"""
+"""API Router - Main router that includes all sub-routers"""
 
 from fastapi import APIRouter
-from app.api.endpoints import predictions, stocks, websocket, screener, search, price, ohlcv, predict, ai_screener, ws_prices
+from app.api.endpoints import predictions, stocks, websocket, screener, search, price, ohlcv, predict, ai_screener, ws_prices, backtest, tickers, health, config
 
 router = APIRouter()
 
@@ -18,4 +16,7 @@ router.include_router(price.router, tags=["Price"])
 router.include_router(ohlcv.router, tags=["OHLCV"])
 router.include_router(predict.router, tags=["ML Prediction"])
 router.include_router(ai_screener.router, prefix="/ai", tags=["AI Screener"])
-
+router.include_router(backtest.router, tags=["Backtest"])
+router.include_router(tickers.router, tags=["Tickers"])
+router.include_router(health.router, tags=["Health"])
+router.include_router(config.router, tags=["Config"])
