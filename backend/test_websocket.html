@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Price Stream Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f0f0f;
+            color: #fff;
+        }
+        .container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #2a2a2a;
+        }
+        h1 {
+            color: #00D09C;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b3b3b3;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #242424;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #00D09C;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #00b885;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .status.connected {
+            background: rgba(0, 208, 156, 0.15);
+            border: 1px solid #00D09C;
+            color: #00D09C;
+        }
+        .status.disconnected {
+            background: rgba(235, 91, 60, 0.15);
+            border: 1px solid #EB5B3C;
+            color: #EB5B3C;
+        }
+        .price-display {
+            background: #242424;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .price {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .price.up {
+            color: #00D09C;
+        }
+        .price.down {
+            color: #EB5B3C;
+        }
+        .change {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        .messages {
+            background: #242424;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #00D09C;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 WebSocket Price Stream Test</h1>
+        
+        <div class="input-group">
+            <label>Stock Symbol:</label>
+            <input type="text" id="symbol" value="TCS.NS" placeholder="Enter symbol (e.g., TCS.NS)">
+        </div>
+        
+        <div>
+            <button id="connectBtn" onclick="connect()">Connect</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div class="price-display">
+            <div style="color: #b3b3b3; font-size: 14px;">SYMBOL</div>
+            <div id="symbolDisplay" style="font-size: 24px; margin: 10px 0;">-</div>
+            <div class="price" id="price">-</div>
+            <div class="change" id="change">-</div>
+            <div style="color: #666; font-size: 12px; margin-top: 10px;" id="timestamp">-</div>
+        </div>
+        
+        <h3>Messages:</h3>
+        <div class="messages" id="messages"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        
+        function connect() {
+            const symbol = document.getElementById('symbol').value;
+            if (!symbol) {
+                alert('Please enter a symbol');
+                return;
+            }
+            
+            // Connect to WebSocket
+            ws = new WebSocket('ws://localhost:8000/api/v1/ws/prices');
+            
+            ws.onopen = () => {
+                addMessage('Connected to WebSocket');
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+                
+                // Send symbol
+                ws.send(JSON.stringify({ symbol: symbol }));
+                addMessage(`Subscribed to ${symbol}`);
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'price_update') {
+                    updatePrice(data);
+                    addMessage(`Price update: ${data.symbol} = ₹${data.price}`);
+                } else if (data.type === 'heartbeat') {
+                    addMessage('♥ Heartbeat');
+                } else if (data.type === 'connected') {
+                    addMessage(data.message);
+                } else {
+                    addMessage(JSON.stringify(data));
+                }
+            };
+            
+            ws.onerror = (error) => {
+                addMessage('Error: ' + error);
+            };
+            
+            ws.onclose = () => {
+                addMessage('Disconnected');
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').className = 'status disconnected';
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+            };
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+        
+        function updatePrice(data) {
+            document.getElementById('symbolDisplay').textContent = data.symbol;
+            document.getElementById('price').textContent = `₹${data.price.toFixed(2)}`;
+            document.getElementById('price').className = data.changePercent >= 0 ? 'price up' : 'price down';
+            
+            const changeText = `${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)} (${data.changePercent.toFixed(2)}%)`;
+            document.getElementById('change').textContent = changeText;
+            document.getElementById('change').style.color = data.changePercent >= 0 ? '#00D09C' : '#EB5B3C';
+            
+            document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString();
+        }
+        
+        function addMessage(msg) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            messagesDiv.insertBefore(messageDiv, messagesDiv.firstChild);
+            
+            // Keep only last 50 messages
+            while (messagesDiv.children.length > 50) {
+                messagesDiv.removeChild(messagesDiv.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>

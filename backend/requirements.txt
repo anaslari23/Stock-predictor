@@ -1,0 +1,28 @@
+# ============================================================================
+# MINIMAL BACKEND DEPENDENCIES (Python 3.14 Compatible)
+# ============================================================================
+
+# Core FastAPI
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic-settings==2.7.1
+
+# Async HTTP
+aiohttp==3.11.11
+httpx==0.28.1
+yfinance==0.2.50
+
+# Data Processing
+pandas==2.2.3
+
+# WebSockets
+websockets==14.1
+
+# Utilities
+python-dotenv==1.0.1
+loguru==0.7.3
+pytz==2024.2
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
