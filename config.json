@@ -1,0 +1,47 @@
+{
+    "indices": {
+        "NIFTY50": "^NSEI",
+        "BANKNIFTY": "^NSEBANK",
+        "NIFTYIT": "^CNXIT"
+    },
+    "data": {
+        "start_date": "2020-01-01",
+        "interval": "1d",
+        "raw_dir": "data/raw",
+        "processed_dir": "data/processed"
+    },
+    "features": {
+        "technical_indicators": [
+            "SMA_20",
+            "SMA_50",
+            "SMA_200",
+            "EMA_12",
+            "EMA_26",
+            "RSI_14",
+            "MACD",
+            "BB_UPPER",
+            "BB_LOWER",
+            "ATR_14"
+        ],
+        "lag_periods": [
+            1,
+            2,
+            3,
+            5,
+            10,
+            20
+        ],
+        "rolling_windows": [
+            5,
+            10,
+            20,
+            50
+        ]
+    },
+    "model": {
+        "test_size": 0.2,
+        "validation_size": 0.1,
+        "random_state": 42
+    },
+    "timezone": "Asia/Kolkata"
+}
