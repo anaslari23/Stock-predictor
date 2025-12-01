@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     # API Keys (load from .env in production)
     ALPHA_VANTAGE_API_KEY: str = ""
     
+    # Kite Zerodha Config
+    KITE_API_KEY: str = ""
+    KITE_API_SECRET: str = ""
+    KITE_REDIRECT_URL: str = "http://localhost:8000/api/v1/kite/callback"
+    KITE_ACCESS_TOKEN: str = ""  # Can be pre-filled or updated at runtime
+    
     # ML Model Config
     MODEL_UPDATE_INTERVAL: int = 3600  # seconds
     PREDICTION_CACHE_TTL: int = 300  # seconds

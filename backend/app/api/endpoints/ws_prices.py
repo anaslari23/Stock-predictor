@@ -169,11 +169,32 @@ async def websocket_prices(websocket: WebSocket):
         except:
             pass
 
+# Global Kite Ticker Service instance (lazy loaded)
+kite_ticker_service = None
+
+async def get_kite_ticker_service():
+    global kite_ticker_service
+    if kite_ticker_service is None:
+        from app.services.kite_ticker_service import KiteTickerService
+        kite_ticker_service = KiteTickerService()
+        # Start connection in background if token exists
+        if kite_ticker_service.access_token:
+            kite_ticker_service.connect(threaded=True)
+    return kite_ticker_service
+
 async def stream_prices(websocket: WebSocket, symbol: str):
     """
-    Stream price updates every 2 seconds
+    Stream price updates every 2 seconds (or real-time with Kite)
     """
     try:
+        # Try to use Kite Ticker first
+        kite_service = await get_kite_ticker_service()
+        
+        if kite_service and kite_service.is_connected:
+            # TODO: Implement real-time subscription logic here
+            # For now, we'll stick to the polling fallback but log that Kite is available
+            logger.info(f"Kite Ticker connected, but using polling fallback for {symbol} (Implementation pending)")
+            
         while True:
             # Get current price
             price_data = await price_service.get_price(symbol)

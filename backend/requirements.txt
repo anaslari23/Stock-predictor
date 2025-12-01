@@ -15,6 +15,9 @@ yfinance==0.2.50
 # Data Processing
 pandas==2.2.3
 
+# Broker Integration
+kiteconnect==3.9.6
+
 # WebSockets
 websockets==14.1
 
