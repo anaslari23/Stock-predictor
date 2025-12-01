@@ -664,13 +664,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Support
-
-For questions, issues, or feature requests:
-
-- 📧 Email: your.email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/stock_predictor/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/stock_predictor/discussions)
 
 ---
 
@@ -689,7 +682,7 @@ For questions, issues, or feature requests:
 
 <div align="center">
 
-**Made with ❤️ for Indian Stock Market Traders**
+
 
 ⭐ Star this repo if you find it helpful!
 
