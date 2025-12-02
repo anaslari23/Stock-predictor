@@ -1,7 +1,7 @@
 """API Router - Main router that includes all sub-routers"""
 
 from fastapi import APIRouter
-from app.api.endpoints import predictions, stocks, websocket, screener, search, price, ohlcv, predict, ai_screener, ws_prices, backtest, tickers, health, config, kite
+from app.api.endpoints import predictions, stocks, websocket, screener, search, price, ohlcv, predict, ai_screener, ws_prices, backtest, tickers, health, config, kite, nse
 
 router = APIRouter()
 
@@ -21,3 +21,4 @@ router.include_router(tickers.router, tags=["Tickers"])
 router.include_router(health.router, tags=["Health"])
 router.include_router(config.router, tags=["Config"])
 router.include_router(kite.router, prefix="/kite", tags=["Kite Zerodha"])
+router.include_router(nse.router, prefix="/nse", tags=["NSE"])

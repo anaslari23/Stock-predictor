@@ -52,14 +52,36 @@ class ModelLoader:
                 logger.warning(f"LSTM model not found at {model_path}")
                 return False
             
-            # PyTorch loading would go here
-            # import torch
-            # self.lstm_model = torch.load(model_path)
-            # self.lstm_model.eval()
+            import torch
+            import torch.nn as nn
             
-            logger.info(f"LSTM model path exists: {model_path}")
-            logger.warning("PyTorch not installed - LSTM model loading skipped")
-            return False
+            # Define LSTM Model class (must match training script)
+            class LSTMModel(nn.Module):
+                def __init__(self, input_size, hidden_size=50, num_layers=2, output_size=1):
+                    super(LSTMModel, self).__init__()
+                    self.hidden_size = hidden_size
+                    self.num_layers = num_layers
+                    self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+                    self.fc = nn.Linear(hidden_size, output_size)
+
+                def forward(self, x):
+                    h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+                    c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+                    out, _ = self.lstm(x, (h0, c0))
+                    out = self.fc(out[:, -1, :])
+                    return out
+            
+            # Initialize model (input_size=49 based on our training features)
+            # We should ideally save input_size in metadata, but for now we know it's 49
+            self.lstm_model = LSTMModel(input_size=49)
+            
+            # Load state dict
+            # Map location to cpu to ensure it works even if trained on GPU
+            self.lstm_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+            self.lstm_model.eval()
+            
+            logger.info(f"Loaded LSTM model from {model_path}")
+            return True
             
         except Exception as e:
             logger.error(f"Error loading LSTM model: {str(e)}")
