@@ -1,0 +1,1 @@
+ /Users/anaslari/Desktop/stock_predictor/.dart_tool/flutter_build/8f992e34663e10c33cc3ecbb6e0fe348/native_assets.json: 
