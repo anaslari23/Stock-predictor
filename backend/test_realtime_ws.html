@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NSE Real-Time WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        #messages {
+            height: 400px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>NSE Real-Time WebSocket Test</h1>
+
+    <div id="status" class="disconnected">Disconnected</div>
+
+    <div>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <button onclick="subscribe()">Subscribe to TCS, RELIANCE, NIFTY50</button>
+        <button onclick="clearMessages()">Clear Messages</button>
+    </div>
+
+    <h3>Messages:</h3>
+    <div id="messages"></div>
+
+    <script>
+        let ws = null;
+        const messagesDiv = document.getElementById('messages');
+        const statusDiv = document.getElementById('status');
+
+        function addMessage(msg) {
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${msg}`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            if (ws) {
+                addMessage('Already connected');
+                return;
+            }
+
+            ws = new WebSocket('ws://localhost:8000/api/v1/ws/prices');
+
+            ws.onopen = () => {
+                statusDiv.textContent = 'Connected';
+                statusDiv.className = 'connected';
+                addMessage('✅ WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'price_update') {
+                    data.data.forEach(price => {
+                        addMessage(`📊 ${price.symbol}: ₹${price.lastPrice} (${price.changePercent > 0 ? '+' : ''}${price.changePercent.toFixed(2)}%)`);
+                    });
+                } else {
+                    addMessage(`📨 ${JSON.stringify(data)}`);
+                }
+            };
+
+            ws.onerror = (error) => {
+                addMessage(`❌ Error: ${error}`);
+            };
+
+            ws.onclose = () => {
+                statusDiv.textContent = 'Disconnected';
+                statusDiv.className = 'disconnected';
+                addMessage('🔌 WebSocket disconnected');
+                ws = null;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function subscribe() {
+            if (!ws) {
+                addMessage('Not connected');
+                return;
+            }
+
+            const message = {
+                action: 'subscribe',
+                symbols: ['TCS', 'RELIANCE', 'NIFTY50']
+            };
+
+            ws.send(JSON.stringify(message));
+            addMessage(`📤 Sent: ${JSON.stringify(message)}`);
+        }
+
+        function clearMessages() {
+            messagesDiv.innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>
